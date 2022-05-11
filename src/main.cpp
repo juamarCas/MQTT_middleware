@@ -36,6 +36,7 @@ int main(int argv, const char ** argc){
 
     GPIO _gpio("23", "out");
     _gpio.GPIO_Write("1");
+    _gpio.GPIO_Toggle();
   
 
     while(1){
