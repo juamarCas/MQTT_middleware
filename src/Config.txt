@@ -4,3 +4,5 @@
 -protocol = tcp
 -topic    = test
 
+!DB
+-host = 192.168.0.1

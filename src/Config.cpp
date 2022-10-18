@@ -1,76 +1,11 @@
 #include "Config.h"
 
 std::string Config::GetConfigValue(const std::string& group, const std::string& param){
-    _configFile.open(_path);
-    std::string text = "";
-    std::string result;
-
-    bool foundParameter = false;
-    bool foundGroup     = false;
-
-    if (!_configFile) {
-        throw "An error ocurred while opening the file!";
-        return result;
-    }
-
-    std::stringstream ss;
-
-    std::string _group = group;
-    _group.insert(0, sizeof(_groupSimbol), _groupSimbol);
-    std::string _parameter = param;
-    _parameter.insert(0, sizeof(_parameterSimbol), _parameterSimbol);
-
-
-    ///Needed to look in all the file, the group and parameter given
-    while (getline(_configFile, text)) {
-      
-        text.erase(std::remove_if(text.begin(), text.end(), ::isspace), text.end());
-            
-      
-            
-        if (text.find(_group) != std::string::npos) {
-            foundGroup = true;
-            continue;
-        }
-        if (foundGroup) {
-
-            if (text[0] != '-') {
-                break;
-            }
-
-            if (text.find(_parameter) != std::string::npos) {
-                foundParameter = true;
-                    
-
-                if (text.find(_equivalenceSymbol) == std::string::npos) {
-                    _configFile.close();
-                    throw "Error reading parameter!";
-                    return result;
-                }
-
-                std::size_t simbol = text.find(_equivalenceSymbol);
-                simbol++;
-                ss.str(text);
-                ss.seekg(simbol);
-                ss >> result;
-                break;
-            }
-        }
-    }
-
-    _configFile.close();
-
-    if (!foundGroup) {
-        throw "The group does not exist!";
-        return result;
-    }
-
-    if (!foundParameter) {
-        throw "The parameter does not exist!";
-        return result;
-    }
-    return result;
-
+    std::string _g = group;
+    std::string _p = param;
+    std::vector<std::string> data = FindParametersGroup(_g);
+    std::string value = GetParameterValue(data, _p);
+    return value;  
 }
 
 

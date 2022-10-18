@@ -22,15 +22,15 @@ typedef struct Payloads {
 
 int main(int argv, const char ** argc){
     std::string _host, _port, _protocol, _topic;
+    std::string _dbHost;
     Config _configFile("./Config.txt");
     
     try{
         _host     = _configFile.GetConfigValue("MQTT", "host");
         _port     = _configFile.GetConfigValue("MQTT", "port");
         _protocol = _configFile.GetConfigValue("MQTT", "protocol"); 
-        _topic    = _configFile.GetConfigValue("MQTT", "topic");   
-
-        std::cout<<_host<<std::endl;  
+        _topic    = _configFile.GetConfigValue("MQTT", "topic");
+        _dbHost   = _configFile.GetConfigValue("DB", "host");         
     }catch(const char * error){
         std::cout<<error<<std::endl;
     }
