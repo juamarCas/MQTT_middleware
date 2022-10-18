@@ -3,59 +3,75 @@
 #include <fcntl.h>
 #include <thread>
 #include "MQTTClient.h"
-#include "Serial.h"
 #include "GPIO.h"
+#include "Config.h"
 
-Serial serial("/dev/serial0", false, false, false, Serial::B8, Serial::BA9600);
+#define CONNECT_MQTT 0
 
+void Callback(char* data);
+
+/*packet that comes from microcontroller*/
+#pragma pack(1)
+typedef struct Payloads {
+    std::uint16_t moist_1;
+    std::uint16_t moist_2;
+    float         temp;
+    float         hum;
+}Payload, * PPayload;
+#pragma pack()
 
 int main(int argv, const char ** argc){
-   
-    const std::string host     = "esdata.ml";
-    const std::string port     = "1883";
-    const std::string protocol = "tcp";
+    std::string _host, _port, _protocol, _topic;
+    Config _configFile("./Config.txt");
+    
+    try{
+        _host     = _configFile.GetConfigValue("MQTT", "host");
+        _port     = _configFile.GetConfigValue("MQTT", "port");
+        _protocol = _configFile.GetConfigValue("MQTT", "protocol"); 
+        _topic    = _configFile.GetConfigValue("MQTT", "topic");   
 
+        std::cout<<_host<<std::endl;  
+    }catch(const char * error){
+        std::cout<<error<<std::endl;
+    }
     
     const std::string msg      = "Hello from PI!";
-    const std::string topic    = "Room1/RPI";
 
-    MQTTClient mqttClient (host, port, protocol);
+#if CONNECT_MQTT
+    MQTTClient mqttClient (_host, _port, _protocol);
     mqttClient.Connect("sssss");
     mqttClient.PublishToTopic(msg, topic);
-    mqttClient.SubscribeToTopic(topic);
-
-    GPIO _yellow("23", "out");
-    GPIO _green("24", "out");
-    GPIO _red("25", "out");
-
-
+    mqttClient.SubscribeToTopic(_topic);
     std::thread mqtt_client_thread(
-        [&mqttClient, &_red, &_yellow, &_green](){
-            mqttClient.StartListening([&_red, &_yellow, &_green](const std::string& payload){
-                std::cout<<payload<<std::endl;
-                if (payload == "LED1") {
-                    _yellow.GPIO_Toggle();
-                }
-                else if (payload == "LED2") {
-                    _green.GPIO_Toggle();
-                }
-                else if (payload == "LED3") {
-                    _red.GPIO_Toggle();
-                }
-            });
+        [&mqttClient](){
+            while (1) {
+                mqttClient.StartListening([](const std::string& payload) {
+                    std::cout << payload << std::endl;
+                });
+            }
         }
     );
-
     mqtt_client_thread.detach();
-
-    
-  
-
-    while(1){
-
+     while(1){
+       
     }
+#endif
+   
 
     return 0;
 }
+
+/*
+-receives data
+-checksum
+-confirmation receive packet
+-error with data
+-save to queue
+-send event
+-finish
+*/
+
+
+
 
 

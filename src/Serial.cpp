@@ -1,6 +1,6 @@
 #include "Serial.h"
 
-Serial::Serial(std::string path, bool parity, bool stop, bool flow_control,Serial::DATA_SIZE size, Serial::BAUD baud){
+Serial::Serial(const std::string& path, bool parity, bool stop, bool flow_control,Serial::DATA_SIZE size, Serial::BAUD baud){
 	_parity = parity; 
 	_stop = stop; 
 	_flowControl = flow_control; 
@@ -10,14 +10,15 @@ Serial::Serial(std::string path, bool parity, bool stop, bool flow_control,Seria
 }
 
 bool Serial::begin(){
-	_serialPort = open(_path.c_str(), O_RDWR);
+	
 	if(_serialPort < 0){
 		std::cout<<"Error opening port: "<<strerror(errno)<<std::endl;
-		return 0;
+		return false;
 	}
 
 	if(tcgetattr(_serialPort, &_tty) != 0){
 		std::cout<<"Error from tcgetattr"<<std::endl;
+		return false;
 	}
 
 	/*configuration of serial port*/
@@ -45,7 +46,7 @@ bool Serial::begin(){
         _tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
         _tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
         _tty.c_cc[VTIME] = 10;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
-        _tty.c_cc[VMIN] = 0;
+        _tty.c_cc[VMIN] = 3;
 	
  	int b; 
 	int d_baud = (int)_baud;
@@ -60,23 +61,35 @@ bool Serial::begin(){
 	}
 
 	cfsetispeed(&_tty, b);
-        cfsetospeed(&_tty, b);
+    cfsetospeed(&_tty, b);
+
+   return true;
 }
 
 void Serial::serialRead(const int packet_size, const std::function<void(char *)>& callback){
 	char _buff[packet_size];
 	int n = read(_serialPort, &_buff, packet_size);
-	std::cout<<_buff<<std::endl;
-	if(n > 0){
-		for(int i = 0; i < packet_size; i++){
+
+	if (read < 0) {
+		std::cout << "Error at reading: " << strerror(errno) << std::endl;
+		return;
+	}
+	if (n > 0) {
+		/*for(int i = 0; i < packet_size; i++){
 				std::cout<<"["<<i<<"] = "<<_buff[i]<<std::endl;
-		}
+		}*/
+		std::cout << "byte number: " << n << std::endl;
 		(callback)(_buff);
 		sleep(2);
 		tcflush(_serialPort, TCIOFLUSH);
 	}
+	
 }
 
 void Serial::ClosePort(){
 	close(_serialPort);
+}
+
+void Serial::OpenPort() {
+	_serialPort = open(_path.c_str(), O_RDWR);
 }

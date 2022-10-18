@@ -1,0 +1,6 @@
+!MQTT
+-host     = localhost
+-port     = 1883
+-protocol = tcp
+-topic    = test
+

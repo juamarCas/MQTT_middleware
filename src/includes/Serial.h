@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cstdint>
 #include <functional>
+#include <sys/ioctl.h>
 /*
  * Abstraction class for serial, there are a lot default options
  * but in the future i may add those options
@@ -36,7 +37,7 @@ public:
 	 *@param bool indicating if want flow control
 	 *@param size enum indicating bps of the communication
 	 */
-	Serial(std::string path, bool parity, bool stop, bool flow_control,Serial::DATA_SIZE size, Serial::BAUD _baud);
+	Serial(const std::string& path, bool parity, bool stop, bool flow_control,Serial::DATA_SIZE size, Serial::BAUD _baud);
 	~Serial(){
         ClosePort();
 	}
@@ -55,5 +56,6 @@ public:
 	 * 
 	 */
 	void serialRead(const int packet_size, const std::function<void(char *)>& func);
+	void OpenPort();
 	void ClosePort(); 
 }; 
