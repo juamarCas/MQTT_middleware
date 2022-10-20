@@ -1,6 +1,6 @@
 # MQTT Middleware
 Dependencies:
-* sqlite3 library
+* sqlite3 library: [SQlite C++](https://www.sqlite.org/download.html)
 ```
 sudo apt-get install libsqlite3-dev
 ```
