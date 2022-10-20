@@ -6,8 +6,6 @@ void MQTTClient::Connect(const std::string& Client_ID){
     m_conOpt->set_clean_session(true);
     m_callback = new user_callback();
 
-    m_persist = new sample_mem_persistence();
-
     m_client = new mqtt::client(m_url, Client_ID);
     
     m_client->set_callback(*m_callback);
@@ -25,7 +23,7 @@ void MQTTClient::SubscribeToTopic(const std::string& topic, int qos){
     m_client->subscribe(topic, qos);
     std::cout<<"Ok"<<std::endl;
 }
-
+            
 void MQTTClient::PublishToTopic(const std::string& message, const std::string& topic){
     try{
         mqtt::message msg(topic, message, 0, false);

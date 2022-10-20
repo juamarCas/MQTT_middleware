@@ -27,7 +27,7 @@ private:
     *@return a vector of each parameter of that group
     */
    std::vector<std::string> FindParametersGroup(std::string& group);
-
+    
    std::string GetParameterValue(std::vector<std::string>& groupParameters, std::string& param);
 
 public:

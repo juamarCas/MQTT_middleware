@@ -1,3 +1,4 @@
 ./install
 ./src/app
 ./src/*.o
+./src/*.db
