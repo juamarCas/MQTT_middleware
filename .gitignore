@@ -2,3 +2,4 @@
 ./src/app
 ./src/*.o
 ./src/*.db
+./src/Config.txt

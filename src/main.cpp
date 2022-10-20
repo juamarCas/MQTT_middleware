@@ -45,6 +45,7 @@ int main(int argv, const char ** argc){
         _topic    = _configFile.GetConfigValue(configdata::MQTT_group, configdata::topic);
         _clientID = _configFile.GetConfigValue(configdata::MQTT_group, configdata::clientID);  
         _dbPath   = _configFile.GetConfigValue(configdata::DB_group,   configdata::sqliteFile);
+        std::cout<<_dbPath<<std::endl;
     }catch(const char * error){
         std::cout<<error<<std::endl;
         return 1;
@@ -58,8 +59,8 @@ int main(int argv, const char ** argc){
 
     std::cout<<"Connected succesfully!"<<std::endl;
 
-    sql = "INSERT INTO Type(unit, name)" \
-          "VALUES('c', 'Temperature');";
+    // sql = "INSERT INTO Type(unit, name)" \
+    //       "VALUES('c', 'Temperature');";
 
     rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
     if( rc != SQLITE_OK ){

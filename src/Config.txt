@@ -6,4 +6,4 @@
 -clientID = ssss
 
 !DB
--file = data.db
+-file = /home/pi/projects/database/data.db
