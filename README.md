@@ -34,7 +34,7 @@ Example 2: </br>
 -user = exampleUser
 -password = examplePassword
 
-!DB
+!MYSQL
 -host = localhost
 -user = user
 -password = password
