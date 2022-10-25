@@ -1,5 +1,5 @@
 # MQTT Middleware
-Principal node that receives data from other devices and publish them with MQTT protocol.
+Principal node that receives data from other devices and publish them with MQTT protocol and saves it in a SQLite db.
 
 ## Dependencies
 * sqlite3 library: [SQlite C++](https://www.sqlite.org/download.html)
