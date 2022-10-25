@@ -6,7 +6,7 @@
 #include "GPIO.h"
 #include "Config.h"
 #include "ConfigData.h"
-#include <sqlite3.h>
+#include "SQLiteManager.h"
 
 #define CONNECT_MQTT 0
 
@@ -22,22 +22,14 @@ typedef struct Payloads {
 }Payload, * PPayload;
 #pragma pack()
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName) {  
+int callback(void *NotUsed, int argc, char **argv, char **azColName) {  
    return 0;
 }
 
 int main(int argv, const char ** argc){
     std::string _host, _port, _protocol, _topic, _clientID;
     std::string _dbPath;
-    Config _configFile("./Config.txt");
-    sqlite3 * db;
-    int rc;
-
-    char *zErrMsg = 0;
-    char * sql;
-
-    
-    
+    Config _configFile("./Config.txt"); 
     try{
         _host     = _configFile.GetConfigValue(configdata::MQTT_group, configdata::host);
         _port     = _configFile.GetConfigValue(configdata::MQTT_group, configdata::port);
@@ -50,25 +42,16 @@ int main(int argv, const char ** argc){
         std::cout<<error<<std::endl;
         return 1;
     }
-    rc = sqlite3_open(_dbPath.c_str(), &db);
-
-    if(rc){
-        std::cout<<"Can\'t open DB!"<<std::endl;
+    
+    SQLiteManager sqlite(_dbPath.c_str());
+    if(!sqlite.OpenDatabase()){
+        std::cout<<"Error opening database!"<<std::endl;
         return 1;
     }
+    std::cout<<"Database opened succesfully!"<<std::endl;
 
-    std::cout<<"Connected succesfully!"<<std::endl;
-
-    // sql = "INSERT INTO Type(unit, name)" \
-    //       "VALUES('c', 'Temperature');";
-
-    rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
-    if( rc != SQLITE_OK ){
-      std::cout<<zErrMsg<<std::endl;
-      sqlite3_free(zErrMsg);
-   } else {
-      std::cout<<"Added data succesfully!"<<std::endl;
-   }
+    // char * sql = "INSERT INTO Type(unit, name)" \
+    //        "VALUES('%', 'Humidity');"
     
     const std::string msg = "Hello from PI!";
 
@@ -100,9 +83,6 @@ int main(int argv, const char ** argc){
 
 /*
 -receives data
--checksum
--confirmation receive packet
--error with data
 -save to queue
 -send event
 -finish
