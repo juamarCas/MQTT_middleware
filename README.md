@@ -1,5 +1,7 @@
 # MQTT Middleware
-Dependencies:
+Principal node that receives data from other devices and publish them with MQTT protocol.
+
+## Dependencies
 * sqlite3 library: [SQlite C++](https://www.sqlite.org/download.html)
 ```
 sudo apt-get install libsqlite3-dev
