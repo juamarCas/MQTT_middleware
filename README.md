@@ -27,4 +27,4 @@ Example 1: </br>
 ```
 The file is read by the _Config_ class present in the _Config.h_ class.</br>
 
-For more information about this config file in the following link: https://github.com/juamarCas/ConfigFile/edit/main/README.md
+For more information about this config file in the following link: https://github.com/juamarCas/ConfigFile
