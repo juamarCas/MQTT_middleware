@@ -47,6 +47,6 @@ The file is separeted in two type of information:</br>
 parameters with the same name in different groups. 
 * Parameters: are denoted with a "-" sufix, is the name the program will look for and get its value after the "=" simbol
 
-NOTE: make a repository for the config file and a Wiki
+The file is read by the _Config_ class present in the _Config.h_ class.</br>
 
-The file is read by the _Config_ class present in the _Config.h_ class.
+For more information about this: [Config file class](https://github.com/juamarCas/ConfigFile/edit/main/README.md)
