@@ -2,23 +2,26 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <thread>
+#include <nlohmann/json.hpp>
 #include "MQTTClient.h"
 #include "GPIO.h"
 #include "Config.h"
 #include "ConfigData.h"
 #include "SQLiteManager.h"
+#include "ThreadQueue.h"
 
-#define CONNECT_MQTT 0
+#define CONNECT_MQTT 1
 
 void Callback(char* data);
 
 /*packet that comes from microcontroller*/
 #pragma pack(1)
 typedef struct Payloads {
-    std::uint16_t moist_1;
-    std::uint16_t moist_2;
+    std::uint8_t moist;
     float         temp;
     float         hum;
+    std::uint16_t soil_temp;
+    std::uint8_t light;
 }Payload, * PPayload;
 #pragma pack()
 
@@ -29,7 +32,7 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 int main(int argv, const char ** argc){
     std::string _host, _port, _protocol, _topic, _clientID;
     std::string _dbPath;
-    Config _configFile("./Config.txt"); 
+    Config _configFile("./Config.txt");
     try{
         _host     = _configFile.GetConfigValue(configdata::MQTT_group, configdata::host);
         _port     = _configFile.GetConfigValue(configdata::MQTT_group, configdata::port);
@@ -42,6 +45,8 @@ int main(int argv, const char ** argc){
         std::cout<<error<<std::endl;
         return 1;
     }
+
+  
     
     SQLiteManager sqlite(_dbPath.c_str());
     if(!sqlite.OpenDatabase()){
@@ -49,31 +54,35 @@ int main(int argv, const char ** argc){
         return 1;
     }
     std::cout<<"Database opened succesfully!"<<std::endl;
-
     // char * sql = "INSERT INTO Type(unit, name)" \
     //        "VALUES('%', 'Humidity');"
     
     const std::string msg = "Hello from PI!";
 
+    ThreadQueue<std::string> _tQueue(10);
 #if CONNECT_MQTT
     MQTTClient mqttClient (_host, _port, _protocol);
     mqttClient.Connect(_clientID);
-    mqttClient.PublishToTopic(msg, topic);
+    mqttClient.PublishToTopic(msg, _topic);
     mqttClient.SubscribeToTopic(_topic);
 
     std::thread mqtt_client_thread(
-        [&mqttClient](){
-            while (1) {
-                mqttClient.StartListening([](const std::string& payload) {
-                    std::cout << payload << std::endl;
-                });
-            }
+        [&mqttClient, &_tQueue](){        
+                mqttClient.StartListening([&_tQueue](const char * payload) {
+                    std::string _jsonRaw(payload);
+                    _tQueue.SendValue(_jsonRaw);
+                });           
         }
     );
     mqtt_client_thread.detach();
-    
-     while(1){
-       
+
+    std::string _dataReceptor;
+    while(1){
+       if(_tQueue.GetValue(_dataReceptor)){
+            std::cout<<_dataReceptor<<std::endl;
+            auto jsonParsed = nlohmann::json::parse(_dataReceptor);
+            std::cout<<jsonParsed.dump(4)<<std::endl;
+       }
     }
 #endif
    

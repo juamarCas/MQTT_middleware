@@ -95,6 +95,7 @@ class MQTTClient{
 	*@param callback function executed with string parameter with the message received
 	*/
 	void StartListening(const std::function<void(const std::string&)>& callback);
+	void StartListening(const std::function<void(const char *)>& callbak);
 
 };
 

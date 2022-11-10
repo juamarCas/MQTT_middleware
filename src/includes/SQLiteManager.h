@@ -34,13 +34,15 @@ class SQLiteManager{
     *
     *
     */
-    bool CloseDatabase();
+    void CloseDatabase();
     
     /*
     *
     *
     */
     bool SendSQLSentence(char * sqlSentence, int(*callback)(void *, int, char **, char **));
+
+  
 };
 
 #endif

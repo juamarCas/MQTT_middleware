@@ -44,3 +44,13 @@ void MQTTClient::StartListening(const std::function<void(const std::string&)>& c
          }
      }
 }
+
+void MQTTClient::StartListening(const std::function<void(const char *)>& callback){
+     while(m_isConnected){
+         auto msg = m_client->consume_message();
+         if(msg){
+             std::string payload = msg->to_string();
+             callback(payload.c_str());
+         }
+     }
+}

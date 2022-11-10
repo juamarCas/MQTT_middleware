@@ -22,3 +22,10 @@ bool SQLiteManager::SendSQLSentence(char * sqlSentence, int(*callback)(void *, i
       return true;
    }
 }
+
+
+void SQLiteManager::CloseDatabase(){
+    if(_isDatabaseOpen){
+        sqlite3_close(db);
+    }
+}
