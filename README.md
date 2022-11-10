@@ -7,7 +7,7 @@ Principal node that receives data from other devices and publish them with MQTT 
 sudo apt-get install libsqlite3-dev
 ```
 * pahoo MQTT library: [Pahoo MQTT C++](https://github.com/eclipse/paho.mqtt.cpp)
-
+* JSON for modern C++: [JSON library](https://github.com/nlohmann/json)
 ## Config file
 the config file is a txt contains all the information about the connections to the MQTT broker and the database</br>
 
