@@ -28,3 +28,9 @@ Example 1: </br>
 The file is read by the _Config_ class present in the _Config.h_ class.</br>
 
 For more information about this config file in the following link: https://github.com/juamarCas/ConfigFile
+
+## Database
+The project is connected to an SQLite database to store information.</br>
+This is the UML diagram: 
+
+[](./photos/DB_DIAGRAM.jpeg)
