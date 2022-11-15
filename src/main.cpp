@@ -15,6 +15,8 @@
 
 void Callback(char* data);
 
+bool SaveDataToRegistry(std::uint16_t _sensorID, float _sensorValue);
+
 /*packet that comes from microcontroller*/
 #pragma pack(1)
 typedef struct Payloads {
@@ -97,6 +99,10 @@ int main(int argv, const char ** argc){
    
 
     return 0;
+}
+
+bool SaveDataToRegistry(std::uint16_t _sensorID, float _sensorValue){
+    return false;
 }
 
 
