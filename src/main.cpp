@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <thread>
 #include <nlohmann/json.hpp>
+#include <ctime>
 #include "MQTTClient.h"
 #include "GPIO.h"
 #include "Config.h"
@@ -24,6 +25,12 @@ typedef struct Payloads {
     std::uint8_t light;
 }Payload, * PPayload;
 #pragma pack()
+
+const std::uint16_t id_envTemp      = 100;
+const std::uint16_t id_envHum       = 101;
+const std::uint16_t id_soilMoisture = 102;
+const std::uint16_t id_soilTemp     = 103;
+const std::uint16_t id_lightPerc    = 104;
 
 int callback(void *NotUsed, int argc, char **argv, char **azColName) {  
    return 0;
@@ -74,6 +81,8 @@ int main(int argv, const char ** argc){
                 });           
         }
     );
+
+
     mqtt_client_thread.detach();
 
     std::string _dataReceptor;
@@ -89,13 +98,6 @@ int main(int argv, const char ** argc){
 
     return 0;
 }
-
-/*
--receives data
--save to queue
--send event
--finish
-*/
 
 
 
