@@ -33,4 +33,4 @@ For more information about this config file in the following link: https://githu
 The project is connected to an SQLite database to store information.</br>
 This is the UML diagram: 
 
-[](./photos/DB_DIAGRAM.jpeg)
+![](./photos/DB_DIAGRAM.jpeg)
