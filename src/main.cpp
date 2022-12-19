@@ -11,6 +11,7 @@
 #include "ConfigData.h"
 #include "SQLiteManager.h"
 #include "ThreadQueue.h"
+#include "Queries.h"
 
 #define CONNECT_MQTT 1
 
@@ -102,10 +103,10 @@ int main(int argv, const char ** argc){
             _p.temp  = jsonParsed["envTemp"];
             _p.hum   = jsonParsed["envHum"];
 
-            AssembleQuery(id_envTemp, _p.temp, &sqlite);
-            AssembleQuery(id_envHum, _p.hum, &sqlite);
-            AssembleQuery(id_lightPerc, _p.light, &sqlite);
-            AssembleQuery(id_soilMoisture, _p.moist, &sqlite);
+            query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
+            query::AssembleQuery(id_envHum, _p.hum, &sqlite);
+            query::AssembleQuery(id_lightPerc, _p.light, &sqlite);
+            query::AssembleQuery(id_soilMoisture, _p.moist, &sqlite);
        }
     }
 #endif
@@ -114,31 +115,6 @@ int main(int argv, const char ** argc){
     return 0;
 }
 
-template <typename T>
-bool AssembleQuery(std::uint16_t _sensorID, T _value, SQLiteManager * _sql){
-    time_t now = time(0);
-    char * date_time = ctime(&now);
-
-    std::string date(date_time);
-    std::size_t pos = date.find('\n');
-
-    while(pos != std::string::npos){
-        date.erase(pos, 1);
-        pos = date.find('\n');
-    }
-    std::stringstream ss;
-
-    ss << "INSERT INTO Register(date, value, sensor_id)\nVALUES("<<"\'"<<date <<"\'"<<","<<_value<<","<<_sensorID<<");";
-    std::string q = ss.str();
-
-    std::cout<<"Query: "<<std::endl;
-    std::cout<<q<<std::endl;
-    char * query = q.c_str();
-    if(_sql->SendSQLSentence(query, callback)){
-        std::cout<<"Value saved!"<<std::endl;
-    }
-    
-}
 
 
 
