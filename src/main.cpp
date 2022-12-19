@@ -15,10 +15,7 @@
 
 #define CONNECT_MQTT 1
 
-void Callback(char* data);
 
-template <typename T>
-bool AssembleQuery(std::uint16_t _sensorID, T _value, SQLiteManager * _sql);
 
 
 /*packet that comes from microcontroller*/
@@ -38,9 +35,7 @@ const std::uint16_t id_soilMoisture = 102;
 const std::uint16_t id_soilTemp     = 103;
 const std::uint16_t id_lightPerc    = 104;
 
-int callback(void *NotUsed, int argc, char **argv, char **azColName) {  
-   return 0;
-}
+
 
 int main(int argv, const char ** argc){
     std::string _host, _port, _protocol, _topic, _clientID;
@@ -66,17 +61,12 @@ int main(int argv, const char ** argc){
         return 1;
     }
     std::cout<<"Database opened succesfully!"<<std::endl;
-    // char * sql = "INSERT INTO Type(unit, name)" \
-    //        "VALUES('%', 'Humidity');"
-    
-    const std::string msg = "Hello from PI!";
 
     ThreadQueue<std::string> _tQueue(10);
 
 #if CONNECT_MQTT
     MQTTClient mqttClient (_host, _port, _protocol);
     mqttClient.Connect(_clientID);
-    mqttClient.PublishToTopic(msg, _topic);
     mqttClient.SubscribeToTopic(_topic);
 
     std::thread mqtt_client_thread(
@@ -104,9 +94,9 @@ int main(int argv, const char ** argc){
             _p.hum   = jsonParsed["envHum"];
 
             query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
-            query::AssembleQuery(id_envHum, _p.hum, &sqlite);
-            query::AssembleQuery(id_lightPerc, _p.light, &sqlite);
-            query::AssembleQuery(id_soilMoisture, _p.moist, &sqlite);
+            query::SaveDataToRegister(id_envHum, _p.hum, &sqlite);
+            query::SaveDataToRegister(id_lightPerc, _p.light, &sqlite);
+            query::SaveDataToRegister(id_soilMoisture, _p.moist, &sqlite);
        }
     }
 #endif
