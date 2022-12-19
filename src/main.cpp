@@ -4,6 +4,7 @@
 #include <thread>
 #include <nlohmann/json.hpp>
 #include <ctime>
+#include <sstream>
 #include "MQTTClient.h"
 #include "GPIO.h"
 #include "Config.h"
@@ -15,7 +16,9 @@
 
 void Callback(char* data);
 
-bool SaveDataToRegistry(std::uint16_t _sensorID, float _sensorValue);
+template <typename T>
+bool AssembleQuery(std::uint16_t _sensorID, T _value, SQLiteManager * _sql);
+
 
 /*packet that comes from microcontroller*/
 #pragma pack(1)
@@ -49,7 +52,6 @@ int main(int argv, const char ** argc){
         _topic    = _configFile.GetConfigValue(configdata::MQTT_group, configdata::topic);
         _clientID = _configFile.GetConfigValue(configdata::MQTT_group, configdata::clientID);  
         _dbPath   = _configFile.GetConfigValue(configdata::DB_group,   configdata::sqliteFile);
-        std::cout<<_dbPath<<std::endl;
     }catch(const char * error){
         std::cout<<error<<std::endl;
         return 1;
@@ -69,6 +71,7 @@ int main(int argv, const char ** argc){
     const std::string msg = "Hello from PI!";
 
     ThreadQueue<std::string> _tQueue(10);
+
 #if CONNECT_MQTT
     MQTTClient mqttClient (_host, _port, _protocol);
     mqttClient.Connect(_clientID);
@@ -87,12 +90,22 @@ int main(int argv, const char ** argc){
 
     mqtt_client_thread.detach();
 
+    Payload _p;
     std::string _dataReceptor;
     while(1){
        if(_tQueue.GetValue(_dataReceptor)){
             std::cout<<_dataReceptor<<std::endl;
             auto jsonParsed = nlohmann::json::parse(_dataReceptor);
-            std::cout<<jsonParsed.dump(4)<<std::endl;
+            
+            _p.moist = jsonParsed["moist"];
+            _p.light = jsonParsed["light"];
+            _p.temp  = jsonParsed["envTemp"];
+            _p.hum   = jsonParsed["envHum"];
+
+            AssembleQuery(id_envTemp, _p.temp, &sqlite);
+            AssembleQuery(id_envHum, _p.hum, &sqlite);
+            AssembleQuery(id_lightPerc, _p.light, &sqlite);
+            AssembleQuery(id_soilMoisture, _p.moist, &sqlite);
        }
     }
 #endif
@@ -101,9 +114,32 @@ int main(int argv, const char ** argc){
     return 0;
 }
 
-bool SaveDataToRegistry(std::uint16_t _sensorID, float _sensorValue){
-    return false;
+template <typename T>
+bool AssembleQuery(std::uint16_t _sensorID, T _value, SQLiteManager * _sql){
+    time_t now = time(0);
+    char * date_time = ctime(&now);
+
+    std::string date(date_time);
+    std::size_t pos = date.find('\n');
+
+    while(pos != std::string::npos){
+        date.erase(pos, 1);
+        pos = date.find('\n');
+    }
+    std::stringstream ss;
+
+    ss << "INSERT INTO Register(date, value, sensor_id)\nVALUES("<<"\'"<<date <<"\'"<<","<<_value<<","<<_sensorID<<");";
+    std::string q = ss.str();
+
+    std::cout<<"Query: "<<std::endl;
+    std::cout<<q<<std::endl;
+    char * query = q.c_str();
+    if(_sql->SendSQLSentence(query, callback)){
+        std::cout<<"Value saved!"<<std::endl;
+    }
+    
 }
+
 
 
 

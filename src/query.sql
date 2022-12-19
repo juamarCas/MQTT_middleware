@@ -1,4 +1,4 @@
---Type of sensor: temperature, humidity, ect...
+--Type of sensor: temperature, humidity, etc...
 CREATE TABLE IF NOT EXISTS "Type" (
 	"id"	INTEGER NOT NULL UNIQUE,
 	"unit"	TEXT NOT NULL,
@@ -29,8 +29,16 @@ CREATE TABLE IF NOT EXISTS "Register"(
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
---data insertion
+--data view panels
+CREATE TABLE IF NOT EXISTS "Panels"(
+	"id" INTEGER NOT NULL UNIQUE, 
+	"sensor_id" INTEGER NOT NULL,
+	"description" TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("sensor_id") REFERENCES "Sensor"("id")
+);
 
+--data insertion for Type
 INSERT INTO Type(unit, name)
 VALUES("C", "temperature");
 
@@ -55,3 +63,5 @@ VALUES(103, "Soil temperature", 1);
 
 INSERT INTO Sensor(id, name, typeId)
 VALUES(104, "Light percentage", 3);
+
+--Inserting data into registry
