@@ -14,20 +14,16 @@
 #include "Queries.h"
 
 #define CONNECT_MQTT 1
+#define INSERT_DATA_DB 1
 
-
-
-
-/*packet that comes from microcontroller*/
-#pragma pack(1)
 typedef struct Payloads {
     std::uint8_t moist;
     float         temp;
     float         hum;
     std::uint16_t soil_temp;
     std::uint8_t light;
-}Payload, * PPayload;
-#pragma pack()
+}Payload;
+
 
 const std::uint16_t id_envTemp      = 100;
 const std::uint16_t id_envHum       = 101;
@@ -88,15 +84,16 @@ int main(int argv, const char ** argc){
             std::cout<<_dataReceptor<<std::endl;
             auto jsonParsed = nlohmann::json::parse(_dataReceptor);
             
-            _p.moist = jsonParsed["moist"];
-            _p.light = jsonParsed["light"];
+            int moist = jsonParsed["moist"];
+            int light = jsonParsed["light"];
             _p.temp  = jsonParsed["envTemp"];
             _p.hum   = jsonParsed["envHum"];
-
+#if INSERT_DATA_DB
             query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
             query::SaveDataToRegister(id_envHum, _p.hum, &sqlite);
-            query::SaveDataToRegister(id_lightPerc, _p.light, &sqlite);
-            query::SaveDataToRegister(id_soilMoisture, _p.moist, &sqlite);
+            query::SaveDataToRegister(id_lightPerc, light, &sqlite);
+            query::SaveDataToRegister(id_soilMoisture, moist, &sqlite);
+#endif
        }
     }
 #endif
