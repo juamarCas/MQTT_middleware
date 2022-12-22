@@ -45,7 +45,7 @@ int main(int argv, const char ** argc){
         _clientID = _configFile.GetConfigValue(configdata::MQTT_group, configdata::clientID);  
         _dbPath   = _configFile.GetConfigValue(configdata::DB_group,   configdata::sqliteFile);
     }catch(const char * error){
-        std::cout<<error<<std::endl;
+        std::cout<<"[EXCEPTION]: "<<error<<std::endl;
         return 1;
     }
 
@@ -81,19 +81,24 @@ int main(int argv, const char ** argc){
     std::string _dataReceptor;
     while(1){
        if(_tQueue.GetValue(_dataReceptor)){
-            std::cout<<_dataReceptor<<std::endl;
+        try{
+             std::cout<<_dataReceptor<<std::endl;
             auto jsonParsed = nlohmann::json::parse(_dataReceptor);
             
-            int moist = jsonParsed["moist"];
-            int light = jsonParsed["light"];
-            _p.temp  = jsonParsed["envTemp"];
-            _p.hum   = jsonParsed["envHum"];
-#if INSERT_DATA_DB
-            query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
-            query::SaveDataToRegister(id_envHum, _p.hum, &sqlite);
-            query::SaveDataToRegister(id_lightPerc, light, &sqlite);
-            query::SaveDataToRegister(id_soilMoisture, moist, &sqlite);
-#endif
+            int moist    = jsonParsed["moist"];
+            int light    = jsonParsed["light"];
+            float temp   = jsonParsed["envTemp"];
+            float hum    = jsonParsed["envHum"];
+            #if INSERT_DATA_DB
+                query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
+                query::SaveDataToRegister(id_envHum, _p.hum, &sqlite);
+                query::SaveDataToRegister(id_lightPerc, light, &sqlite);
+                query::SaveDataToRegister(id_soilMoisture, moist, &sqlite);
+            #endif
+        }catch(std::exception e){         
+            std::cout<<"[EXCEPTION]: "<<e.what()<<std::endl;
+        }
+           
        }
     }
 #endif
