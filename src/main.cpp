@@ -16,22 +16,11 @@
 #define CONNECT_MQTT 1
 #define INSERT_DATA_DB 1
 
-typedef struct Payloads {
-    std::uint8_t moist;
-    float         temp;
-    float         hum;
-    std::uint16_t soil_temp;
-    std::uint8_t light;
-}Payload;
-
-
 const std::uint16_t id_envTemp      = 100;
 const std::uint16_t id_envHum       = 101;
 const std::uint16_t id_soilMoisture = 102;
 const std::uint16_t id_soilTemp     = 103;
 const std::uint16_t id_lightPerc    = 104;
-
-
 
 int main(int argv, const char ** argc){
     std::string _host, _port, _protocol, _topic, _clientID;
@@ -106,10 +95,3 @@ int main(int argv, const char ** argc){
 
     return 0;
 }
-
-
-
-
-
-
-
