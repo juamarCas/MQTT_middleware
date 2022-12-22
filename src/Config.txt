@@ -3,6 +3,7 @@
 -port     = 1883
 -protocol = tcp
 -topic    = test
+-clientID = RPI_Server
 
 !DB
--host = 192.168.0.1
+-file = /home/pi/projects/database/data.db

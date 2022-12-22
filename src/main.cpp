@@ -2,76 +2,96 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <thread>
+#include <nlohmann/json.hpp>
+#include <ctime>
+#include <sstream>
 #include "MQTTClient.h"
 #include "GPIO.h"
 #include "Config.h"
+#include "ConfigData.h"
+#include "SQLiteManager.h"
+#include "ThreadQueue.h"
+#include "Queries.h"
 
-#define CONNECT_MQTT 0
+#define CONNECT_MQTT 1
+#define INSERT_DATA_DB 1
 
-void Callback(char* data);
-
-/*packet that comes from microcontroller*/
-#pragma pack(1)
-typedef struct Payloads {
-    std::uint16_t moist_1;
-    std::uint16_t moist_2;
-    float         temp;
-    float         hum;
-}Payload, * PPayload;
-#pragma pack()
+const std::uint16_t id_envTemp      = 100;
+const std::uint16_t id_envHum       = 101;
+const std::uint16_t id_soilMoisture = 102;
+const std::uint16_t id_soilTemp     = 103;
+const std::uint16_t id_lightPerc    = 104;
 
 int main(int argv, const char ** argc){
-    std::string _host, _port, _protocol, _topic;
-    std::string _dbHost;
+    std::string _host, _port, _protocol, _topic, _clientID;
+    std::string _dbPath;
     Config _configFile("./Config.txt");
-    
     try{
-        _host     = _configFile.GetConfigValue("MQTT", "host");
-        _port     = _configFile.GetConfigValue("MQTT", "port");
-        _protocol = _configFile.GetConfigValue("MQTT", "protocol"); 
-        _topic    = _configFile.GetConfigValue("MQTT", "topic");
-        _dbHost   = _configFile.GetConfigValue("DB", "host");         
+        _host     = _configFile.GetConfigValue(configdata::MQTT_group, configdata::host);
+        _port     = _configFile.GetConfigValue(configdata::MQTT_group, configdata::port);
+        _protocol = _configFile.GetConfigValue(configdata::MQTT_group, configdata::protocol);
+        _topic    = _configFile.GetConfigValue(configdata::MQTT_group, configdata::topic);
+        _clientID = _configFile.GetConfigValue(configdata::MQTT_group, configdata::clientID);  
+        _dbPath   = _configFile.GetConfigValue(configdata::DB_group,   configdata::sqliteFile);
     }catch(const char * error){
-        std::cout<<error<<std::endl;
+        std::cout<<"[EXCEPTION]: "<<error<<std::endl;
+        return 1;
     }
+
+  
     
-    const std::string msg      = "Hello from PI!";
+    SQLiteManager sqlite(_dbPath.c_str());
+    if(!sqlite.OpenDatabase()){
+        std::cout<<"Error opening database!"<<std::endl;
+        return 1;
+    }
+    std::cout<<"Database opened succesfully!"<<std::endl;
+
+    ThreadQueue<std::string> _tQueue(10);
 
 #if CONNECT_MQTT
     MQTTClient mqttClient (_host, _port, _protocol);
-    mqttClient.Connect("sssss");
-    mqttClient.PublishToTopic(msg, topic);
+    mqttClient.Connect(_clientID);
     mqttClient.SubscribeToTopic(_topic);
+
     std::thread mqtt_client_thread(
-        [&mqttClient](){
-            while (1) {
-                mqttClient.StartListening([](const std::string& payload) {
-                    std::cout << payload << std::endl;
-                });
-            }
+        [&mqttClient, &_tQueue](){        
+                mqttClient.StartListening([&_tQueue](const char * payload) {
+                    std::string _jsonRaw(payload);
+                    _tQueue.SendValue(_jsonRaw);
+                });           
         }
     );
+
+
     mqtt_client_thread.detach();
-     while(1){
-       
+
+    Payload _p;
+    std::string _dataReceptor;
+    while(1){
+       if(_tQueue.GetValue(_dataReceptor)){
+        try{
+             std::cout<<_dataReceptor<<std::endl;
+            auto jsonParsed = nlohmann::json::parse(_dataReceptor);
+            
+            int moist    = jsonParsed["moist"];
+            int light    = jsonParsed["light"];
+            float temp   = jsonParsed["envTemp"];
+            float hum    = jsonParsed["envHum"];
+            #if INSERT_DATA_DB
+                query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
+                query::SaveDataToRegister(id_envHum, _p.hum, &sqlite);
+                query::SaveDataToRegister(id_lightPerc, light, &sqlite);
+                query::SaveDataToRegister(id_soilMoisture, moist, &sqlite);
+            #endif
+        }catch(std::exception e){         
+            std::cout<<"[EXCEPTION]: "<<e.what()<<std::endl;
+        }
+           
+       }
     }
 #endif
    
 
     return 0;
 }
-
-/*
--receives data
--checksum
--confirmation receive packet
--error with data
--save to queue
--send event
--finish
-*/
-
-
-
-
-
