@@ -66,7 +66,6 @@ int main(int argv, const char ** argc){
 
     mqtt_client_thread.detach();
 
-    Payload _p;
     std::string _dataReceptor;
     while(1){
        if(_tQueue.GetValue(_dataReceptor)){
@@ -79,8 +78,8 @@ int main(int argv, const char ** argc){
             float temp   = jsonParsed["envTemp"];
             float hum    = jsonParsed["envHum"];
             #if INSERT_DATA_DB
-                query::SaveDataToRegister(id_envTemp, _p.temp, &sqlite);
-                query::SaveDataToRegister(id_envHum, _p.hum, &sqlite);
+                query::SaveDataToRegister(id_envTemp, temp, &sqlite);
+                query::SaveDataToRegister(id_envHum, hum, &sqlite);
                 query::SaveDataToRegister(id_lightPerc, light, &sqlite);
                 query::SaveDataToRegister(id_soilMoisture, moist, &sqlite);
             #endif

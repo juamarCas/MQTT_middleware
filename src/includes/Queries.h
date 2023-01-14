@@ -30,9 +30,6 @@ namespace query
 
         ss << "INSERT INTO Register(date, value, sensor_id)\nVALUES("<<"\'"<<date <<"\'"<<","<<_value<<","<<_sensorID<<");";
         std::string q = ss.str();
-
-        std::cout<<"Query: "<<std::endl;
-        std::cout<<q<<std::endl;
         char * query = q.c_str();
         if(_sql->SendSQLSentence(query, callback)){
             std::cout<<"Value saved!"<<std::endl;
